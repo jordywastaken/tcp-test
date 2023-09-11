@@ -1,88 +1,63 @@
 
 #include <stdio.h>
-#include <WS2tcpip.h>
+#include <time.h>
+#include "Socket.h"
+#include "API.h"
 
-#pragma comment(lib, "ws2_32.lib")
+void DumpHex(const void* data, size_t size) 
+{
+	char ascii[17];
+	size_t i, j;
+	ascii[16] = '\0';
+	for (i = 0; i < size; ++i) 
+	{
+		printf("%02X ", ((unsigned char*)data)[i]);
+		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') 
+		{
+			ascii[i % 16] = ((unsigned char*)data)[i];
+		}
+		else 
+		{
+			ascii[i % 16] = '.';
+		}
+		if ((i + 1) % 8 == 0 || i + 1 == size) 
+		{
+			printf(" ");
+			if ((i + 1) % 16 == 0) 
+			{
+				printf("|  %s \n", ascii);
+			}
+			else if (i + 1 == size) 
+			{
+				ascii[(i + 1) % 16] = '\0';
+				if ((i + 1) % 16 <= 8) 
+				{
+					printf(" ");
+				}
+				for (j = (i + 1) % 16; j < 16; ++j) 
+				{
+					printf("   ");
+				}
+				printf("|  %s \n", ascii);
+			}
+		}
+	}
+}
 
 int main(int argc, const char* argv[])
 {
-    if (argc != 3)
+    if (argc != 2)
     {
-        printf("Usage: <ip-address> <port>\n");
+        printf("Usage: <ip-address>\n");
         return 0;
     }
 
-    const char* serverIp   = argv[1];
-    int         serverPort = atoi(argv[2]);
+    const char* serverIp = argv[1];
 
-    // Initialize winsock
-    WSADATA        wsData = { 0 };
-    unsigned short wsVersion = MAKEWORD(2, 2);
+    InitializeWinsock();
 
-    int wsOk = WSAStartup(wsVersion, &wsData);
-    if (wsOk < 0)
-    {
-        printf("[Winsock]: Failed to startup : %p\n", wsOk);
-        return wsOk;
-    }
+	printf("TestConnectivity : %s\n", API::TestConnectivity(serverIp) ? "Connected!" : "Not connected...");
 
-    // Create socket
-    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket < 0)
-    {
-        printf("[Socket]: Failed to create : %p\n", clientSocket);
-        return clientSocket;
-    }
-
-    // Connect to the server 
-    sockaddr_in serverAddress;
-    ZeroMemory(&serverAddress, sizeof(serverAddress));
-
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(serverPort);
-    inet_pton(AF_INET, serverIp, &serverAddress.sin_addr);
-
-    int connectionStatus = connect(clientSocket, (sockaddr*)&serverAddress, sizeof(serverAddress));
-    if (connectionStatus < 0)
-    {
-        printf("[Client]: Error connecting to %s:%i : %p\n", serverIp, serverPort, connectionStatus);
-        return connectionStatus;
-    }
-
-    printf("[Client]: Connected to %s:%i\n", serverIp, serverPort);
-
-    while (true)
-    {
-        // Clear buffer and get console input
-        char buffer[1024];
-        ZeroMemory(buffer, 1024);
-
-        printf("[Client]: Enter command to send : ");
-        gets_s(buffer);
-
-        // Handle 'exit' command
-        if (strncmp(buffer, "exit", 4) == 0)
-        {
-            send(clientSocket, buffer, strlen(buffer), 0);
-            break;
-        }
-
-        // Send command to the server
-        send(clientSocket, buffer, strlen(buffer), 0);
-        printf("[Client]: Waiting for server response...\n");
-
-        // Clear buffer and receive server response
-        ZeroMemory(buffer, 1024);
-        recv(clientSocket, buffer, 1024, 0);
-
-        printf("[Server]: '%s'\n", buffer);
-    }
-
-    // Close socket
-    closesocket(clientSocket);
-
-    // Terminate winsock
-    WSACleanup();
-
+    TerminateWinsock();
     return 0;
 }

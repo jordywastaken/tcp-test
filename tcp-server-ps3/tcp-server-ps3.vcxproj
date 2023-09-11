@@ -54,9 +54,13 @@
       <PreprocessorDefinitions>_DEBUG;__CELL_ASSERT__;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CppLanguageStd>Cpp11</CppLanguageStd>
+      <OptimizationLevel>Level2</OptimizationLevel>
     </ClCompile>
     <Link>
       <AdditionalDependencies>-lnet_stub;-lnetctl_stub;%(AdditionalDependencies)</AdditionalDependencies>
+      <InfoStripping>StripDebug</InfoStripping>
+      <DataStripping>StripFuncsAndData</DataStripping>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
@@ -67,7 +71,22 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Server\API.cpp" />
+    <ClCompile Include="Common\Imports.cpp" />
     <ClCompile Include="prx.cpp" />
+    <ClCompile Include="Common\Socket.cpp" />
+    <ClCompile Include="Common\Syscalls.cpp" />
+    <ClCompile Include="Common\ThreadPool.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Server\API.h" />
+    <ClInclude Include="Common\Imports.h" />
+    <ClInclude Include="Common\Socket.h" />
+    <ClInclude Include="Common\Syscalls.h" />
+    <ClInclude Include="Common\Thread.h" />
+    <ClInclude Include="Common\ThreadPool.h" />
+    <ClInclude Include="Server\Commands\Debug.h" />
+    <ClInclude Include="Server\Commands\General.h" />
   </ItemGroup>
   <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
